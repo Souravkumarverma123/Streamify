@@ -7,6 +7,8 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 
+import { getIO } from "../utils/socket.js"
+
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params
 
@@ -25,22 +27,33 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
         likedBy: req.user._id
     })
 
+    let isLiked = false
+
     if (existingLike) {
         // Unlike the video
         await Like.findByIdAndDelete(existingLike._id)
-        return res
-            .status(200)
-            .json(new ApiResponse(200, { isLiked: false }, "Video unliked successfully"))
+        isLiked = false
     } else {
         // Like the video
         await Like.create({
             video: videoId,
             likedBy: req.user._id
         })
-        return res
-            .status(200)
-            .json(new ApiResponse(200, { isLiked: true }, "Video liked successfully"))
+        isLiked = true
     }
+
+    const likesCount = await Like.countDocuments({ video: videoId })
+
+    try {
+        const io = getIO()
+        io.emit("video:like-update", { videoId, likesCount })
+    } catch (error) {
+        console.error("Socket emit error:", error)
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { isLiked, likesCount }, isLiked ? "Video liked successfully" : "Video unliked successfully"))
 })
 
 const toggleCommentLike = asyncHandler(async (req, res) => {

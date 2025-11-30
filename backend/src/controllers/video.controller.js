@@ -8,6 +8,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { emitNotificationToUsers } from "../utils/socket.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -105,10 +106,22 @@ const getAllVideos = asyncHandler(async (req, res) => {
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description, category, tags, isShort } = req.body
+    const { title, description, category, tags, isShort, videoType, aspectRatio } = req.body
     // check  that both title and description is provided
     if (!(title && description)) {
         throw new ApiError(400, "Title and description are required")
+    }
+
+    // Validate videoType and aspectRatio if provided
+    const validVideoTypes = ['long-form', 'short-form']
+    const validAspectRatios = ['16:9', '9:16', '1:1', '4:3']
+
+    if (videoType && !validVideoTypes.includes(videoType)) {
+        throw new ApiError(400, "Invalid video type. Must be 'long-form' or 'short-form'")
+    }
+
+    if (aspectRatio && !validAspectRatios.includes(aspectRatio)) {
+        throw new ApiError(400, "Invalid aspect ratio. Must be '16:9', '9:16', '1:1', or '4:3'")
     }
     // set the local path for the video and thumbnail and then check that the local path is set sucessfully
     const videoFileLocalPath = req.files?.videoFile?.[0]?.path
@@ -134,6 +147,14 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Thumbnail upload failed")
     }
 
+    // Determine if video is a short based on videoType
+    const determineIsShort = () => {
+        if (videoType === 'short-form') return true
+        if (videoType === 'long-form') return false
+        // Fallback to isShort field for backward compatibility
+        return isShort === 'true' || isShort === true
+    }
+
     // Create video document
     const video = await Video.create({
         videoFile: videoFile.url,
@@ -143,7 +164,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
         duration: videoFile.duration || 0,
         owner: req.user._id,
         isPublished: true,
-        isShort: isShort === 'true' || isShort === true,
+        isShort: determineIsShort(),
+        videoType: videoType || 'long-form',
+        aspectRatio: aspectRatio || '16:9',
         category: category || 'Other',
         tags: tags ? (Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim())) : []
     })
@@ -167,6 +190,24 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
         if (notifications.length > 0) {
             await Notification.insertMany(notifications)
+
+            // Emit real-time notifications via Socket.io
+            const subscriberIds = subscribers.map(sub => sub.subscriber.toString())
+            emitNotificationToUsers(subscriberIds, {
+                type: 'new_video',
+                sender: {
+                    _id: req.user._id,
+                    fullName: req.user.fullName,
+                    username: req.user.username,
+                    avatar: req.user.avatar
+                },
+                video: {
+                    _id: video._id,
+                    title: video.title,
+                    thumbnail: video.thumbnail
+                },
+                message: `${req.user.fullName} uploaded a new video: ${title}`
+            })
         }
     } catch (error) {
         console.error('Error creating notifications:', error)
@@ -364,8 +405,32 @@ const getShorts = asyncHandler(async (req, res) => {
             }
         },
         {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "video",
+                as: "likes"
+            }
+        },
+        {
+            $lookup: {
+                from: "comments",
+                localField: "_id",
+                foreignField: "video",
+                as: "comments"
+            }
+        },
+        {
             $addFields: {
-                owner: { $first: "$owner" }
+                owner: { $first: "$owner" },
+                likesCount: { $size: "$likes" },
+                commentsCount: { $size: "$comments" }
+            }
+        },
+        {
+            $project: {
+                likes: 0,
+                comments: 0
             }
         }
     ]

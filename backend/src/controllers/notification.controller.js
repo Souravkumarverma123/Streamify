@@ -2,6 +2,7 @@ import { Notification } from "../models/notification.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { emitNotificationToUser } from "../utils/socket.js"
 import { isValidObjectId } from "mongoose"
 
 const getNotifications = asyncHandler(async (req, res) => {
@@ -59,6 +60,16 @@ const markAsRead = asyncHandler(async (req, res) => {
 
     notification.isRead = true
     await notification.save()
+
+    // Emit socket event for real-time update
+    try {
+        emitNotificationToUser(req.user._id, {
+            type: 'notification_read',
+            notificationId: notification._id
+        })
+    } catch (error) {
+        console.error('Error emitting socket event:', error)
+    }
 
     return res
         .status(200)

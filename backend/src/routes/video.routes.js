@@ -16,8 +16,8 @@ const router = Router();
 
 // Public routes
 router.route("/").get(getAllVideos);
+router.route("/shorts").get(getShorts); // Public shorts endpoint - MUST be before /:videoId
 router.route("/:videoId").get(getVideoById);
-router.route("/shorts").get(getShorts); // Public shorts endpoint
 
 // Protected routes
 router.use(verifyJWT); // Apply verifyJWT middleware to all routes below

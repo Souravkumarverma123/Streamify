@@ -1,8 +1,9 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Video, Upload, Bell, Search, Menu, User } from 'lucide-react'
+import { Video, Upload, Search, Menu, User } from 'lucide-react'
 import { useState } from 'react'
 import Sidebar from './Sidebar'
+import NotificationBell from './NotificationBell'
 import { Button } from './ui/Button'
 import Input from './ui/Input'
 import { motion } from 'framer-motion'
@@ -47,9 +48,7 @@ const Layout = () => {
 
             {/* Right Actions */}
             <div className="flex items-center gap-2 md:gap-4">
-              <Button variant="ghost" size="icon" className="hidden md:flex">
-                <Bell className="h-5 w-5" />
-              </Button>
+              {user && <NotificationBell />}
               <Button
                 variant="default"
                 size="sm"

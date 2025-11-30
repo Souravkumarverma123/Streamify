@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { videoAPI } from '../api/video'
+import { likeAPI } from '../api/like'
 import { Heart, MessageCircle, Share2, MoreVertical, Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
+import Comments from '../components/Comments'
 
 const Shorts = () => {
     const [shorts, setShorts] = useState([])
@@ -11,6 +14,7 @@ const Shorts = () => {
     const [isMuted, setIsMuted] = useState(true)
     const [loading, setLoading] = useState(true)
     const containerRef = useRef(null)
+    const videoRefs = useRef([])
 
     useEffect(() => {
         const fetchShorts = async () => {
@@ -39,6 +43,20 @@ const Shorts = () => {
     const togglePlay = () => setIsPlaying(!isPlaying)
     const toggleMute = () => setIsMuted(!isMuted)
 
+    // Control video playback based on current index and play state
+    useEffect(() => {
+        videoRefs.current.forEach((video, index) => {
+            if (video) {
+                if (index === currentIndex && isPlaying) {
+                    video.play().catch(err => console.log('Play error:', err))
+                } else {
+                    video.pause()
+                    video.currentTime = 0
+                }
+            }
+        })
+    }, [currentIndex, isPlaying])
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-[calc(100vh-64px)]">
@@ -62,84 +80,175 @@ const Shorts = () => {
             className="h-[calc(100vh-64px)] w-full max-w-[500px] mx-auto overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-black rounded-xl"
         >
             {shorts.map((short, index) => (
-                <div
+                <ShortsVideoItem
                     key={short._id}
-                    className="relative h-full w-full snap-start snap-always flex items-center justify-center bg-black"
-                >
-                    {/* Video Placeholder (Image for now as we don't have real vertical videos) */}
-                    <div className="relative w-full h-full">
-                        <img
-                            src={short.thumbnail}
-                            alt={short.title}
-                            className="w-full h-full object-cover opacity-80"
-                        />
-
-                        {/* Play/Pause Overlay */}
-                        <div
-                            className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                            onClick={togglePlay}
-                        >
-                            {!isPlaying && index === currentIndex && (
-                                <div className="h-16 w-16 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-sm">
-                                    <Play className="h-8 w-8 text-white fill-white" />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Controls & Info Overlay */}
-                        <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 pb-20 md:pb-4">
-                            {/* Top Controls */}
-                            <div className="flex justify-between items-start pointer-events-auto">
-                                <div />
-                                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full" onClick={toggleMute}>
-                                    {isMuted ? <VolumeX /> : <Volume2 />}
-                                </Button>
-                            </div>
-
-                            {/* Bottom Info & Actions */}
-                            <div className="flex items-end justify-between gap-4">
-                                {/* Info */}
-                                <div className="flex-1 space-y-3 pointer-events-auto">
-                                    <div className="flex items-center gap-2">
-                                        <div className="h-10 w-10 rounded-full border-2 border-white overflow-hidden">
-                                            <img src={short.owner.avatar} alt={short.owner.username} className="w-full h-full object-cover" />
-                                        </div>
-                                        <span className="font-semibold text-white drop-shadow-md">@{short.owner.username}</span>
-                                        <Button size="sm" variant="secondary" className="h-7 px-3 rounded-full bg-white text-black hover:bg-white/90">
-                                            Subscribe
-                                        </Button>
-                                    </div>
-                                    <h2 className="text-white font-medium line-clamp-2 drop-shadow-md">
-                                        {short.title}
-                                    </h2>
-                                    <div className="flex items-center gap-2 text-white/90 text-sm">
-                                        <div className="px-2 py-1 rounded bg-white/20 backdrop-blur-md">
-                                            🎵 Original Sound
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Right Actions */}
-                                <div className="flex flex-col items-center gap-4 pointer-events-auto pb-4">
-                                    <ActionButton icon={Heart} label="124K" />
-                                    <ActionButton icon={MessageCircle} label="1.2K" />
-                                    <ActionButton icon={Share2} label="Share" />
-                                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
-                                        <MoreVertical />
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    short={short}
+                    index={index}
+                    currentIndex={currentIndex}
+                    isPlaying={isPlaying}
+                    isMuted={isMuted}
+                    togglePlay={togglePlay}
+                    toggleMute={toggleMute}
+                    videoRef={el => videoRefs.current[index] = el}
+                />
             ))}
         </div>
     )
 }
 
-const ActionButton = ({ icon: Icon, label }) => (
+import { useSocket } from '../context/SocketContext'
+
+const ShortsVideoItem = ({ short, index, currentIndex, isPlaying, isMuted, togglePlay, toggleMute, videoRef }) => {
+    const [isLiked, setIsLiked] = useState(false)
+    const [likesCount, setLikesCount] = useState(short.likesCount || 0)
+    const [commentsCount, setCommentsCount] = useState(short.commentsCount || 0)
+    const [showComments, setShowComments] = useState(false)
+    const { user } = useAuth()
+    const { socket } = useSocket()
+
+    useEffect(() => {
+        if (!socket) return
+
+        const handleLikeUpdate = ({ videoId, likesCount }) => {
+            if (videoId === short._id) {
+                setLikesCount(likesCount)
+            }
+        }
+
+        socket.on('video:like-update', handleLikeUpdate)
+
+        return () => {
+            socket.off('video:like-update', handleLikeUpdate)
+        }
+    }, [socket, short._id])
+
+    const handleLike = async () => {
+        if (!user) return // TODO: Show login modal
+
+        try {
+            const response = await likeAPI.toggleVideoLike(short._id)
+            setIsLiked(response.data.isLiked)
+            // We don't need to manually update likesCount here anymore as socket will do it,
+            // but for immediate feedback/optimistic UI we can keep it or rely on socket.
+            // Relying on socket might have a slight delay.
+            // Let's keep optimistic update but socket will correct it.
+            // Actually, if we update here AND socket updates, it's fine.
+        } catch (error) {
+            console.error('Error toggling like:', error)
+        }
+    }
+
+    return (
+        <div className="relative h-full w-full snap-start snap-always flex items-center justify-center bg-black">
+            {/* Video Player */}
+            <div className="relative w-full h-full">
+                <video
+                    ref={videoRef}
+                    src={short.videoFile}
+                    poster={short.thumbnail}
+                    className="w-full h-full object-cover"
+                    loop
+                    playsInline
+                    muted={isMuted}
+                    onClick={togglePlay}
+                />
+
+                {/* Play/Pause Overlay */}
+                <div
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                    onClick={togglePlay}
+                >
+                    {!isPlaying && index === currentIndex && (
+                        <div className="h-16 w-16 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-sm">
+                            <Play className="h-8 w-8 text-white fill-white" />
+                        </div>
+                    )}
+                </div>
+
+                {/* Controls & Info Overlay */}
+                <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 pb-20 md:pb-4">
+                    {/* Top Controls */}
+                    <div className="flex justify-between items-start pointer-events-auto">
+                        <div />
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full" onClick={toggleMute}>
+                            {isMuted ? <VolumeX /> : <Volume2 />}
+                        </Button>
+                    </div>
+
+                    {/* Bottom Info & Actions */}
+                    <div className="flex items-end justify-between gap-4">
+                        {/* Info */}
+                        <div className="flex-1 space-y-3 pointer-events-auto">
+                            <div className="flex items-center gap-2">
+                                <div className="h-10 w-10 rounded-full border-2 border-white overflow-hidden">
+                                    <img src={short.owner.avatar} alt={short.owner.username} className="w-full h-full object-cover" />
+                                </div>
+                                <span className="font-semibold text-white drop-shadow-md">@{short.owner.username}</span>
+                                <Button size="sm" variant="secondary" className="h-7 px-3 rounded-full bg-white text-black hover:bg-white/90">
+                                    Subscribe
+                                </Button>
+                            </div>
+                            <h2 className="text-white font-medium line-clamp-2 drop-shadow-md">
+                                {short.title}
+                            </h2>
+                            <div className="flex items-center gap-2 text-white/90 text-sm">
+                                <div className="px-2 py-1 rounded bg-white/20 backdrop-blur-md">
+                                    🎵 Original Sound
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Actions */}
+                        <div className="flex flex-col items-center gap-4 pointer-events-auto pb-4">
+                            <div className="flex flex-col items-center gap-1">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`h-12 w-12 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm ${isLiked ? 'text-red-500' : 'text-white'}`}
+                                    onClick={handleLike}
+                                >
+                                    <Heart className={`h-6 w-6 ${isLiked ? 'fill-current' : ''}`} />
+                                </Button>
+                                <span className="text-xs font-medium text-white drop-shadow-md">{likesCount}</span>
+                            </div>
+
+                            <ActionButton
+                                icon={MessageCircle}
+                                label={commentsCount.toString()}
+                                onClick={() => setShowComments(true)}
+                            />
+                            <ActionButton icon={Share2} label="Share" />
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                                <MoreVertical />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Comments Overlay */}
+                <AnimatePresence>
+                    {showComments && (
+                        <Comments
+                            videoId={short._id}
+                            onClose={() => setShowComments(false)}
+                            onCommentAdded={() => setCommentsCount(prev => prev + 1)}
+                            onCommentDeleted={() => setCommentsCount(prev => prev - 1)}
+                        />
+                    )}
+                </AnimatePresence>
+            </div>
+        </div>
+    )
+}
+
+const ActionButton = ({ icon: Icon, label, onClick }) => (
     <div className="flex flex-col items-center gap-1">
-        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm">
+        <Button
+            variant="ghost"
+            size="icon"
+            className="h-12 w-12 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm"
+            onClick={onClick}
+        >
             <Icon className="h-6 w-6" />
         </Button>
         <span className="text-xs font-medium text-white drop-shadow-md">{label}</span>

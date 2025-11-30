@@ -1,34 +1,34 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {User} from "../models/user.model.js"
+import mongoose, { isValidObjectId } from "mongoose"
+import { User } from "../models/user.model.js"
 import { Subscription } from "../models/subscription.model.js"
-import {ApiError} from "../utils/ApiError.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import { ApiError } from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 
 const toggleSubscription = asyncHandler(async (req, res) => {
-    const {channelId} = req.params
-    
+    const { channelId } = req.params
+
     if (!isValidObjectId(channelId)) {
         throw new ApiError(400, "Invalid channel ID")
     }
-    
+
     const channel = await User.findById(channelId)
     if (!channel) {
         throw new ApiError(404, "Channel not found")
     }
-    
+
     // Check if user is trying to subscribe to themselves
     if (channelId === req.user._id.toString()) {
         throw new ApiError(400, "You cannot subscribe to your own channel")
     }
-    
+
     // Check if subscription already exists
     const existingSubscription = await Subscription.findOne({
         subscriber: req.user._id,
         channel: channelId
     })
-    
+
     if (existingSubscription) {
         // Unsubscribe
         await Subscription.findByIdAndDelete(existingSubscription._id)
@@ -49,18 +49,18 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
-    const {channelId} = req.params
+    const { channelId } = req.params
     const { page = 1, limit = 10 } = req.query
-    
+
     if (!isValidObjectId(channelId)) {
         throw new ApiError(400, "Invalid channel ID")
     }
-    
+
     const channel = await User.findById(channelId)
     if (!channel) {
         throw new ApiError(404, "Channel not found")
     }
-    
+
     const subscribers = await Subscription.aggregate([
         {
             $match: {
@@ -97,12 +97,12 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
             }
         }
     ])
-    
+
     const options = {
         page: parseInt(page),
         limit: parseInt(limit)
     }
-    
+
     const paginatedSubscribers = await Subscription.aggregatePaginate(
         Subscription.aggregate([
             {
@@ -142,7 +142,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         ]),
         options
     )
-    
+
     return res
         .status(200)
         .json(new ApiResponse(200, paginatedSubscribers, "Subscribers fetched successfully"))
@@ -152,16 +152,16 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 const getSubscribedChannels = asyncHandler(async (req, res) => {
     const { subscriberId } = req.params
     const { page = 1, limit = 10 } = req.query
-    
+
     if (!isValidObjectId(subscriberId)) {
         throw new ApiError(400, "Invalid subscriber ID")
     }
-    
+
     const subscriber = await User.findById(subscriberId)
     if (!subscriber) {
         throw new ApiError(404, "Subscriber not found")
     }
-    
+
     const subscribedChannels = await Subscription.aggregate([
         {
             $match: {
@@ -199,12 +199,12 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
             }
         }
     ])
-    
+
     const options = {
         page: parseInt(page),
         limit: parseInt(limit)
     }
-    
+
     const paginatedSubscribedChannels = await Subscription.aggregatePaginate(
         Subscription.aggregate([
             {
@@ -245,14 +245,42 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         ]),
         options
     )
-    
+
     return res
         .status(200)
         .json(new ApiResponse(200, paginatedSubscribedChannels, "Subscribed channels fetched successfully"))
 })
 
+// controller to check subscription status and get subscriber count
+const getSubscriptionStatus = asyncHandler(async (req, res) => {
+    const { channelId } = req.params
+
+    if (!isValidObjectId(channelId)) {
+        throw new ApiError(400, "Invalid channel ID")
+    }
+
+    // Check if subscription exists
+    const subscription = await Subscription.findOne({
+        subscriber: req.user._id,
+        channel: channelId
+    })
+
+    // Get subscriber count
+    const subscriberCount = await Subscription.countDocuments({
+        channel: channelId
+    })
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {
+            isSubscribed: !!subscription,
+            subscriberCount
+        }, "Subscription status fetched successfully"))
+})
+
 export {
     toggleSubscription,
     getUserChannelSubscribers,
-    getSubscribedChannels
+    getSubscribedChannels,
+    getSubscriptionStatus
 }

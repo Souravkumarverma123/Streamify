@@ -17,5 +17,11 @@ export const subscriptionAPI = {
     getSubscribedChannels: async (subscriberId, params = {}) => {
         const response = await api.get(`/subscriptions/c/${subscriberId}`, { params })
         return response.data
+    },
+
+    // Check subscription status for a channel
+    getSubscriptionStatus: async (channelId) => {
+        const response = await api.get(`/subscriptions/status/${channelId}`)
+        return response.data
     }
 }

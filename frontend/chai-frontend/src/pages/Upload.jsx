@@ -23,7 +23,9 @@ const Upload = () => {
     title: '',
     description: '',
     videoFile: null,
-    thumbnail: null
+    thumbnail: null,
+    videoType: 'long-form',
+    aspectRatio: '16:9'
   })
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -54,6 +56,8 @@ const Upload = () => {
       const uploadFormData = new FormData()
       uploadFormData.append('title', formData.title)
       uploadFormData.append('description', formData.description)
+      uploadFormData.append('videoType', formData.videoType)
+      uploadFormData.append('aspectRatio', formData.aspectRatio)
       uploadFormData.append('videoFile', formData.videoFile)
       if (formData.thumbnail) {
         uploadFormData.append('thumbnail', formData.thumbnail)
@@ -158,6 +162,73 @@ const Upload = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
+                  {/* Video Type Selection */}
+                  <div>
+                    <label className="block text-sm font-medium mb-3">Video Type *</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div
+                        onClick={() => setFormData(prev => ({ ...prev, videoType: 'long-form', aspectRatio: '16:9' }))}
+                        className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${formData.videoType === 'long-form'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-300 hover:border-blue-300'
+                          }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.videoType === 'long-form' ? 'border-blue-500' : 'border-gray-300'
+                            }`}>
+                            {formData.videoType === 'long-form' && (
+                              <div className="w-2 h-2 rounded-full bg-blue-500" />
+                            )}
+                          </div>
+                          <span className="font-semibold">Long-form</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Traditional videos, tutorials, vlogs</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Recommended: 16:9</p>
+                      </div>
+
+                      <div
+                        onClick={() => setFormData(prev => ({ ...prev, videoType: 'short-form', aspectRatio: '9:16' }))}
+                        className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${formData.videoType === 'short-form'
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                          : 'border-gray-300 hover:border-purple-300'
+                          }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.videoType === 'short-form' ? 'border-purple-500' : 'border-gray-300'
+                            }`}>
+                            {formData.videoType === 'short-form' && (
+                              <div className="w-2 h-2 rounded-full bg-purple-500" />
+                            )}
+                          </div>
+                          <span className="font-semibold">Short-form</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Quick clips, reels, shorts</p>
+                        <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Recommended: 9:16</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Aspect Ratio Selection */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Aspect Ratio *</label>
+                    <select
+                      value={formData.aspectRatio}
+                      onChange={(e) => setFormData(prev => ({ ...prev, aspectRatio: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="16:9">16:9 - Landscape (YouTube, TV)</option>
+                      <option value="9:16">9:16 - Portrait (TikTok, Reels)</option>
+                      <option value="1:1">1:1 - Square (Instagram)</option>
+                      <option value="4:3">4:3 - Classic TV</option>
+                    </select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.aspectRatio === '16:9' && '📺 Perfect for landscape videos and traditional content'}
+                      {formData.aspectRatio === '9:16' && '📱 Ideal for mobile-first vertical videos'}
+                      {formData.aspectRatio === '1:1' && '⬛ Great for social media posts'}
+                      {formData.aspectRatio === '4:3' && '📼 Classic format for retro content'}
+                    </p>
+                  </div>
+
                   {/* Video Upload */}
                   <div>
                     <label className="block text-sm font-medium mb-2">Video File</label>
@@ -353,7 +424,9 @@ const Upload = () => {
                         title: '',
                         description: '',
                         videoFile: null,
-                        thumbnail: null
+                        thumbnail: null,
+                        videoType: 'long-form',
+                        aspectRatio: '16:9'
                       })
                     }}
                   >
