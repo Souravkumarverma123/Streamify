@@ -1,231 +1,226 @@
-# Chai Video - YouTube Clone
+# Streamify - Frontend
 
-A full-stack YouTube clone built with React, Node.js, Express, and MongoDB. Features user authentication, video management, social features, and a modern responsive UI.
+A modern, full-featured video streaming platform frontend built with React, Vite, and Tailwind CSS.
 
-## 🚀 Quick Start
+## 🚀 Features
 
-### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-- MongoDB (local or Atlas)
+- **Authentication System**
+  - User registration with avatar and cover image upload
+  - Login with email or username
+  - JWT-based authentication with automatic token refresh
+  - Protected routes
 
-### Installation
+- **User Management**
+  - View and edit profile
+  - Update account details (name, email)
+  - Change password
+  - Update avatar and cover images
 
-1. **Clone and setup:**
-   ```bash
-   git clone <your-repo-url>
-   cd chai_youtube
-   chmod +x setup.sh
-   ./setup.sh
-   ```
+- **Channel System**
+  - View channel profiles with subscriber counts
+  - Channel statistics display
+  - Subscribe/unsubscribe functionality (UI ready)
 
-2. **Configure Environment:**
-   
-   Update `chai-backend/env` with your configuration:
-   ```env
-   # Database Configuration
-   MONGODB_URL=mongodb://localhost:27017
-   # OR for MongoDB Atlas:
-   # MONGODB_URL=mongodb+srv://username:password@cluster.mongodb.net
+- **Watch History**
+  - Track and display watched videos
+  - View video details and thumbnails
 
-   # JWT Configuration
-   ACCESS_TOKEN_SECRET=your_very_long_and_secure_access_token_secret_key_here
-   REFRESH_TOKEN_SECRET=your_very_long_and_secure_refresh_token_secret_key_here
-   ACCESS_TOKEN_EXPIRY=15m
-   REFRESH_TOKEN_EXPIRY=7d
-
-   # Server Configuration
-   PORT=8000
-   CORS_ORIGIN=http://localhost:3000
-
-   # Cloudinary Configuration (for file uploads)
-   CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-   CLOUDINARY_API_KEY=your_cloudinary_api_key
-   CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-   ```
-
-3. **Start MongoDB:**
-   
-   **Option A: Local MongoDB**
-   ```bash
-   # Install MongoDB
-   brew tap mongodb/brew
-   brew install mongodb-community
-   brew services start mongodb/brew/mongodb-community
-   ```
-   
-   **Option B: MongoDB Atlas (Recommended)**
-   - Go to [MongoDB Atlas](https://cloud.mongodb.com)
-   - Create a free cluster
-   - Get connection string
-   - Update `MONGODB_URL` in `chai-backend/env`
-
-4. **Start the applications:**
-   
-   **Terminal 1 - Backend:**
-   ```bash
-   cd chai-backend
-   npm run dev
-   ```
-   
-   **Terminal 2 - Frontend:**
-   ```bash
-   cd chai-frontend
-   npm run dev
-   ```
-
-5. **Access the application:**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-
-## 🏗️ Project Structure
-
-```
-chai_youtube/
-├── chai-backend/          # Node.js/Express API
-│   ├── src/
-│   │   ├── controllers/   # Route handlers
-│   │   ├── models/        # MongoDB schemas
-│   │   ├── routes/        # API routes
-│   │   ├── middlewares/   # Auth, file upload
-│   │   └── utils/         # Helper functions
-│   └── env               # Environment variables
-├── chai-frontend/         # React application
-│   ├── src/
-│   │   ├── api/          # API service layer
-│   │   ├── components/   # Reusable components
-│   │   ├── pages/        # Page components
-│   │   └── context/      # React context
-└── setup.sh             # Setup script
-```
-
-## 🎯 Features
-
-### ✅ Implemented:
-- User authentication (register/login)
-- User profile management
-- Avatar and cover image uploads
-- Channel profiles with subscription logic
-- Watch history tracking
-- Modern responsive UI
-- JWT-based security
-
-### 🚧 In Development:
-- Video upload and streaming
-- Comment system
-- Like/unlike functionality
-- Video recommendations
-- Search functionality
-- Playlist management
-
-## 🔧 API Endpoints
-
-### Authentication
-- `POST /api/v1/users/register` - User registration
-- `POST /api/v1/users/login` - User login
-- `POST /api/v1/users/logout` - User logout
-- `POST /api/v1/users/refresh-token` - Refresh access token
-
-### User Management
-- `GET /api/v1/users/current-user` - Get current user
-- `PATCH /api/v1/users/update-account` - Update account details
-- `POST /api/v1/users/change-password` - Change password
-- `PATCH /api/v1/users/avatar` - Update avatar
-- `PATCH /api/v1/users/cover-image` - Update cover image
-
-### Channel & History
-- `GET /api/v1/users/c/:username` - Get channel profile
-- `GET /api/v1/users/history` - Get watch history
+- **Modern UI/UX**
+  - Responsive design for all screen sizes
+  - Dark mode support
+  - Beautiful gradient backgrounds
+  - Smooth animations and transitions
+  - Professional card-based layouts
 
 ## 🛠️ Tech Stack
 
-### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM
-- **JWT** - Authentication
-- **Cloudinary** - File storage
-- **Multer** - File upload handling
-
-### Frontend
-- **React 18** - UI library
-- **Vite** - Build tool
-- **React Router** - Client-side routing
-- **Tailwind CSS** - Styling
+- **React 18.3** - UI library
+- **Vite 5.4** - Build tool and dev server
+- **React Router 6** - Client-side routing
+- **Tailwind CSS 3.4** - Utility-first CSS framework
 - **Axios** - HTTP client
-- **Lucide React** - Icons
+- **Lucide React** - Icon library
+
+## 📦 Installation
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+   The app will be available at `http://localhost:3000`
+
+3. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
+4. **Preview production build:**
+   ```bash
+   npm run preview
+   ```
+
+## 🔧 Configuration
+
+### Backend Connection
+
+The frontend is configured to proxy API requests to the backend server. The proxy is set up in `vite.config.js`:
+
+```javascript
+server: {
+  port: 3000,
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8000',
+      changeOrigin: true,
+    },
+  },
+}
+```
+
+**Make sure your backend server is running on `http://localhost:8000`** before starting the frontend.
+
+### Environment Variables
+
+Create a `.env` file (optional) if you need custom configuration:
+
+```env
+VITE_API_URL=http://localhost:8000/api/v1
+```
+
+## 📁 Project Structure
+
+```
+chai-frontend/
+├── src/
+│   ├── api/              # API service layers
+│   │   ├── axios.js      # Axios instance with interceptors
+│   │   ├── auth.js       # Authentication API calls
+│   │   └── user.js       # User-related API calls
+│   ├── components/       # Reusable components
+│   │   ├── ui/          # UI components (Button, Input, Card)
+│   │   ├── Layout.jsx   # Main layout with header
+│   │   └── ProtectedRoute.jsx
+│   ├── context/         # React Context
+│   │   └── AuthContext.jsx
+│   ├── lib/             # Utility functions
+│   │   └── utils.js
+│   ├── pages/           # Page components
+│   │   ├── Login.jsx
+│   │   ├── Register.jsx
+│   │   ├── Home.jsx
+│   │   ├── Profile.jsx
+│   │   ├── Channel.jsx
+│   │   ├── WatchHistory.jsx
+│   │   └── Settings.jsx
+│   ├── App.jsx          # Main app component
+│   ├── main.jsx         # Entry point
+│   └── index.css        # Global styles
+├── public/              # Static assets
+├── index.html           # HTML template
+├── vite.config.js       # Vite configuration
+├── tailwind.config.js   # Tailwind configuration
+└── package.json
+```
+
+## 🎯 Available Routes
+
+- `/login` - Login page
+- `/register` - Registration page
+- `/` - Home dashboard (protected)
+- `/profile` - User profile page (protected)
+- `/channel/:username` - Channel profile page (protected)
+- `/history` - Watch history (protected)
+- `/settings` - Account settings (protected)
+
+## 🔐 Authentication Flow
+
+1. User registers or logs in
+2. Backend returns JWT tokens (access + refresh)
+3. Tokens are stored in HTTP-only cookies
+4. Axios interceptor automatically handles token refresh
+5. Protected routes check authentication status
+
+## 🎨 UI Components
+
+### Custom Components
+
+- **Button** - Multiple variants (default, outline, destructive, ghost, link)
+- **Input** - Styled form inputs with focus states
+- **Card** - Container components with header, content, and footer
+
+### Icons
+
+Using Lucide React for beautiful, consistent icons:
+- User, Video, Settings, History, Home, etc.
+
+## 🚧 Features in Development
+
+The following features have UI placeholders but need backend implementation:
+
+- Video upload and management
+- Comment system
+- Like/unlike functionality
+- Tweet/post creation
+- Playlist management
+- Search functionality
+- Video recommendations
+
+## 🤝 Backend Integration
+
+This frontend is designed to work with the Streamify Backend API. Ensure the backend is running with the following endpoints:
+
+**Auth:**
+- `POST /api/v1/users/register`
+- `POST /api/v1/users/login`
+- `POST /api/v1/users/logout`
+- `POST /api/v1/users/refresh-token`
+- `GET /api/v1/users/current-user`
+
+**User:**
+- `POST /api/v1/users/change-password`
+- `PATCH /api/v1/users/update-account`
+- `PATCH /api/v1/users/avatar`
+- `PATCH /api/v1/users/cover-image`
+- `GET /api/v1/users/c/:username`
+- `GET /api/v1/users/history`
+
+## 📝 Development Tips
+
+1. **Hot Module Replacement (HMR)** is enabled - changes will reflect instantly
+2. **Console errors** are displayed in the browser console
+3. **Network requests** can be monitored in browser DevTools
+4. **Responsive design** can be tested using browser DevTools device toolbar
+
+## 🎨 Customization
+
+### Colors
+
+Edit `tailwind.config.js` and `src/index.css` to customize the color scheme.
+
+### Components
+
+All UI components are in `src/components/ui/` and can be easily customized.
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+**Issue:** API requests fail with CORS errors
+- **Solution:** Ensure backend has CORS enabled for `http://localhost:3000`
 
-1. **MongoDB Connection Error:**
-   - Ensure MongoDB is running
-   - Check connection string in `env` file
-   - Verify network access (for Atlas)
+**Issue:** Login redirects to login page repeatedly
+- **Solution:** Check if backend cookies are being set with correct domain/path
 
-2. **CORS Errors:**
-   - Check `CORS_ORIGIN` in backend env
-   - Ensure frontend is running on correct port
-
-3. **File Upload Issues:**
-   - Verify Cloudinary credentials
-   - Check file size limits
-   - Ensure proper file types
-
-4. **Authentication Issues:**
-   - Check JWT secrets in env file
-   - Verify token expiration settings
-   - Clear browser cookies if needed
-
-### Development Tips
-
-- Use browser DevTools to monitor network requests
-- Check console for error messages
-- Verify environment variables are loaded
-- Test API endpoints with Postman/Insomnia
-
-## 📝 Environment Variables
-
-### Backend (`chai-backend/env`)
-```env
-MONGODB_URL=mongodb://localhost:27017
-ACCESS_TOKEN_SECRET=your_secret_key
-REFRESH_TOKEN_SECRET=your_secret_key
-ACCESS_TOKEN_EXPIRY=15m
-REFRESH_TOKEN_EXPIRY=7d
-PORT=8000
-CORS_ORIGIN=http://localhost:3000
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-```
-
-## 🚀 Deployment
-
-### Backend Deployment
-1. Set up MongoDB Atlas cluster
-2. Configure environment variables
-3. Deploy to Heroku, Railway, or Vercel
-4. Update CORS_ORIGIN for production domain
-
-### Frontend Deployment
-1. Build the application: `npm run build`
-2. Deploy to Vercel, Netlify, or GitHub Pages
-3. Update API base URL for production
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+**Issue:** Images not uploading
+- **Solution:** Verify backend accepts `multipart/form-data` and Cloudinary is configured
 
 ## 📄 License
 
-ISC License - see LICENSE file for details
+ISC
 
 ## 👨‍💻 Author
 
@@ -233,6 +228,4 @@ Sourav Kumar Verma
 
 ---
 
-**Happy Coding! 🎉**
-# chai-video
-# chai-video
+Built with ❤️ using React + Vite + Tailwind CSS

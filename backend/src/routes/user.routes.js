@@ -1,23 +1,26 @@
 import { Router } from "express";
-import { 
+import {
     loginUser,
-    logoutUser, 
-    registerUser, 
-    refreshAccessToken, 
-    changeCurrentPassword, 
-    getCurrentUser, 
-    updateAccountDetails, 
-    updateUserAvatar, 
-    updateUserCoverImage, 
-    getUserChannelProfile, 
-    getWatchHistory } from "../controllers/user.controller.js";
+    logoutUser,
+    registerUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage,
+    getUserChannelProfile,
+    getWatchHistory
+} from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middlewares.js";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
+import { authLimiter } from "../middlewares/rateLimiter.middleware.js";
 
 
 const router = Router()
 
 router.route("/register").post(
+    authLimiter,
     upload.fields([
         {
             name: "avatar",
@@ -31,7 +34,7 @@ router.route("/register").post(
     registerUser
 )
 
-router.route("/login").post(loginUser)
+router.route("/login").post(authLimiter, loginUser)
 
 
 // secured routes
