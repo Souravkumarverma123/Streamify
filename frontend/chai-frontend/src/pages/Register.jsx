@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
-import { Video, AlertCircle, Upload, ArrowRight } from 'lucide-react'
+import { AlertCircle, Upload, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
+import logo from '../assets/logo.png'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -97,8 +98,8 @@ const Register = () => {
           className="w-full max-w-md space-y-8 my-auto"
         >
           <div className="flex items-center gap-2 text-primary mb-8">
-            <Video className="h-8 w-8" />
-            <span className="font-bold text-2xl">Chai Video</span>
+            <img src={logo} alt="Streamify" className="h-10 w-10 rounded-lg object-cover" />
+            <span className="font-bold text-2xl">Streamify</span>
           </div>
 
           <div className="space-y-2">

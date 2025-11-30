@@ -1,4 +1,4 @@
-# Chai Video - Frontend
+# Streamify - Frontend
 
 A modern, full-featured video streaming platform frontend built with React, Vite, and Tailwind CSS.
 
@@ -173,7 +173,7 @@ The following features have UI placeholders but need backend implementation:
 
 ## 🤝 Backend Integration
 
-This frontend is designed to work with the Chai Backend API. Ensure the backend is running with the following endpoints:
+This frontend is designed to work with the Streamify Backend API. Ensure the backend is running with the following endpoints:
 
 **Auth:**
 - `POST /api/v1/users/register`

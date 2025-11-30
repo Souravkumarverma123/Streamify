@@ -1,12 +1,13 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Video, Upload, Search, Menu, User } from 'lucide-react'
+import { Upload, Search, Menu, User } from 'lucide-react'
 import { useState } from 'react'
 import Sidebar from './Sidebar'
 import NotificationBell from './NotificationBell'
 import { Button } from './ui/Button'
 import Input from './ui/Input'
 import { motion } from 'framer-motion'
+import logo from '../assets/logo.png'
 
 const Layout = () => {
   const { user } = useAuth()
@@ -30,8 +31,8 @@ const Layout = () => {
                 <Menu className="h-5 w-5" />
               </Button>
               <Link to="/" className="flex items-center gap-2 font-bold text-xl text-primary">
-                <Video className="h-6 w-6" />
-                <span>Chai Video</span>
+                <img src={logo} alt="Streamify" className="h-8 w-8 rounded-lg object-cover" />
+                <span>Streamify</span>
               </Link>
             </div>
 

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { cn } from '@/lib/utils'
+import logo from '../assets/logo.png'
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false)
@@ -62,8 +63,8 @@ const Sidebar = () => {
                 isCollapsed ? "justify-center" : "justify-start"
             )}>
                 <div className="flex items-center gap-2 text-primary font-bold text-xl">
-                    <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
-                        <Menu size={20} />
+                    <div className="bg-primary/10 p-1 rounded-lg">
+                        <img src={logo} alt="Streamify" className="h-8 w-8 object-cover rounded-md" />
                     </div>
                     {!isCollapsed && (
                         <motion.span
@@ -72,7 +73,7 @@ const Sidebar = () => {
                             exit={{ opacity: 0 }}
                             className="whitespace-nowrap"
                         >
-                            Chai Video
+                            Streamify
                         </motion.span>
                     )}
                 </div>
