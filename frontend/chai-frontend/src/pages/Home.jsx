@@ -6,7 +6,6 @@ import { Button } from '../components/ui/Button'
 import VideoCard from '../components/VideoCard'
 import ShortsCard from '../components/ShortsCard'
 import { motion } from 'framer-motion'
-import { generateMockVideos, generateMockShorts } from '../lib/mockData'
 
 const Home = () => {
   const [videos, setVideos] = useState([])
@@ -18,35 +17,36 @@ const Home = () => {
     const fetchContent = async () => {
       try {
         // Fetch real videos from backend
-        const response = await videoAPI.getAllVideos({
+        const videosResponse = await videoAPI.getAllVideos({
           page: 1,
-          limit: 12,
-          sortBy: 'views',
+          limit: 24,
+          sortBy: 'createdAt',
           sortType: 'desc'
         })
 
-        let realVideos = []
-        if (response.data) {
-          realVideos = response.data.docs
-          if (realVideos.length > 0) {
-            setFeaturedVideo(realVideos[0])
-          }
+        // Fetch real shorts from backend
+        const shortsResponse = await videoAPI.getShorts({
+          page: 1,
+          limit: 12
+        })
+
+        const realVideos = videosResponse.data?.docs || []
+        const realShorts = shortsResponse.data?.docs || []
+
+        // Set featured video (first video with most views)
+        if (realVideos.length > 0) {
+          setFeaturedVideo(realVideos[0])
         }
 
-        // Generate mock content to fill the page
-        // Pass real videos as seeds to make mock data look related
-        const mockVideos = generateMockVideos(20, realVideos)
-        const mockShorts = generateMockShorts(8)
-
-        // Combine real and mock videos (excluding featured from grid if desired, but keeping for now)
-        setVideos([...realVideos, ...mockVideos])
-        setShorts(mockShorts)
+        // Display only real videos (no mock data)
+        setVideos(realVideos)
+        setShorts(realShorts)
 
       } catch (error) {
         console.error('Error fetching content:', error)
-        // Fallback to purely mock data if backend fails
-        setVideos(generateMockVideos(24))
-        setShorts(generateMockShorts(8))
+        // If API fails, show empty arrays instead of mock data
+        setVideos([])
+        setShorts([])
       } finally {
         setLoading(false)
       }

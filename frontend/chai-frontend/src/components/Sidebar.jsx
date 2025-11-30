@@ -13,7 +13,8 @@ import {
     ChevronLeft,
     ChevronRight,
     LogOut,
-    Menu
+    Menu,
+    LayoutDashboard
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { cn } from '@/lib/utils'
@@ -25,6 +26,7 @@ const Sidebar = () => {
 
     const navItems = [
         { path: '/', label: 'Home', icon: Home },
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/shorts', label: 'Shorts', icon: Film },
         { path: '/upload', label: 'Upload', icon: UploadCloud },
         { path: '/videos', label: 'Browse', icon: Compass },

@@ -32,6 +32,19 @@ const videoSchema = new Schema(
            type: Boolean,
            default: true, 
         },
+        isShort: {
+            type: Boolean,
+            default: false,
+        },
+        category: {
+            type: String,
+            enum: ['Programming', 'Design', 'Database', 'Entertainment', 'Gaming', 'Music', 'Education', 'Sports', 'News', 'Technology', 'Other'],
+            default: 'Other'
+        },
+        tags: {
+            type: [String],
+            default: []
+        },
         owner: {
             type: Schema.Types.ObjectId,
             ref: "User"

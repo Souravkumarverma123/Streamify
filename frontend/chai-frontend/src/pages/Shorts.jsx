@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { generateMockShorts } from '../lib/mockData'
-import { Heart, MessageCircle, Share2, MoreVertical, Play, Pause, Volume2, VolumeX } from 'lucide-react'
+import { videoAPI } from '../api/video'
+import { Heart, MessageCircle, Share2, MoreVertical, Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -9,11 +9,21 @@ const Shorts = () => {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isPlaying, setIsPlaying] = useState(true)
     const [isMuted, setIsMuted] = useState(true)
+    const [loading, setLoading] = useState(true)
     const containerRef = useRef(null)
 
     useEffect(() => {
-        // Load mock shorts
-        setShorts(generateMockShorts(10))
+        const fetchShorts = async () => {
+            try {
+                const response = await videoAPI.getShorts({ limit: 20 })
+                setShorts(response.data?.docs || [])
+            } catch (error) {
+                console.error('Error fetching shorts:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchShorts()
     }, [])
 
     const handleScroll = () => {
@@ -29,7 +39,21 @@ const Shorts = () => {
     const togglePlay = () => setIsPlaying(!isPlaying)
     const toggleMute = () => setIsMuted(!isMuted)
 
-    if (shorts.length === 0) return null
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
+
+    if (shorts.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] gap-4">
+                <p className="text-muted-foreground">No shorts available yet</p>
+            </div>
+        )
+    }
 
     return (
         <div

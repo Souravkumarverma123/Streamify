@@ -51,5 +51,20 @@ export const videoAPI = {
       params: { userId }
     })
     return response.data
+  },
+
+  // Get shorts
+  getShorts: async (params = {}) => {
+    const response = await api.get('/videos/shorts', { params })
+    return response.data
+  },
+
+  // Track watch progress
+  trackWatch: async (videoId, progress, completed = false) => {
+    const response = await api.post(`/videos/watch/${videoId}`, {
+      progress,
+      completed
+    })
+    return response.data
   }
 }

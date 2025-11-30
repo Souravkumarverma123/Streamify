@@ -13,6 +13,7 @@ import Upload from './pages/Upload'
 import Playlists from './pages/Playlists'
 import Watch from './pages/Watch'
 import Videos from './pages/Videos'
+import Dashboard from './pages/Dashboard'
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="playlists" element={<ProtectedRoute><Playlists /></ProtectedRoute>} />
+            <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
